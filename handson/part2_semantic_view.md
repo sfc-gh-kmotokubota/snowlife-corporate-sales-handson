@@ -18,12 +18,14 @@ Snowsight の Workspaces にある **Semantic Studio** を使い、CoCo と会�
 3. CoCo と会話して作る方法を選び、次のプロンプトを送る
 
 ```
-SNOWLIFE_HANDSON_DB.RAW の SF_ACCOUNT、SF_OPPORTUNITY、SF_ACTIVITY、SF_CONTRACT、SF_USER、MST_PRODUCT と、
-SNOWLIFE_HANDSON_DB.MART の V_COMPANY_FINANCIALS、V_JOB_POSTINGS を使って、
-法人営業の分析用セマンティックビューを作ってください。
+このセマンティックビューには、次の8つのテーブルを使ってください。
+SNOWLIFE_HANDSON_DB.RAW の SF_ACCOUNT、SF_OPPORTUNITY、SF_ACTIVITY、SF_CONTRACT、SF_USER、MST_PRODUCT。
+SNOWLIFE_HANDSON_DB.MART の V_COMPANY_FINANCIALS、V_JOB_POSTINGS。
 名前は SV_SALES_ANALYTICS、作成先は SNOWLIFE_HANDSON_DB.AI です。
-各テーブルは ACCT_ID で SF_ACCOUNT と結合し、SF_ACCOUNT は OWNER_ID で SF_USER と結合します。
-商談と既契約は PRD_CD で MST_PRODUCT と結合します。
+結合の仕方:
+- SF_OPPORTUNITY・SF_ACTIVITY・SF_CONTRACT・V_COMPANY_FINANCIALS・V_JOB_POSTINGS は ACCT_ID で SF_ACCOUNT と結合
+- SF_ACCOUNT は OWNER_ID で SF_USER と結合
+- SF_OPPORTUNITY と SF_CONTRACT は PRD_CD で MST_PRODUCT と結合
 ```
 
 4. 生成された `.sv.yaml` がエディタに開くまで待つ
@@ -48,6 +50,7 @@ SNOWLIFE_HANDSON_DB.MART の V_COMPANY_FINANCIALS、V_JOB_POSTINGS を使って�
 **同義語と説明は、AI に自動生成させず手で入れてください。** Snowflake のドキュメントでも、自動生成した同義語はセマンティックビューの品質を下げやすいため、手入力が推奨されています。
 
 フォーム画面の各項目の **Edit** から、少なくとも次の4つを入れてください（YAML を直接編集しても構いません）。
+フォームでは CoCo が付けた名前で表示されるので、元の列名（`AMT_EST` など）を手がかりに探してください。
 
 | 列 | 入れる内容 |
 |---|---|
@@ -59,7 +62,7 @@ SNOWLIFE_HANDSON_DB.MART の V_COMPANY_FINANCIALS、V_JOB_POSTINGS を使って�
 時間があれば次も入れてみてください。
 
 - `SF_ACCOUNT.BR_CD`: 「T01=東京第一法人営業部、T02=東京第二法人営業部、K01=関西法人営業部、C01=中部法人営業部」
-- `SF_ACCOUNT.IND_CD`: 「MFG=製造業、TRD=商社、ITC=情報通信業 …」
+- `SF_ACCOUNT.IND_CD`: 「MFG=製造業、TRD=商社、ITC=情報通信業、FIN=金融業、ENE=電気・ガス業、RTL=小売業、CON=建設業、TRN=運輸業、RES=不動産業」
 - `SF_CONTRACT.STS_CD`: 「1=有効、9=解約」
 
 ---
@@ -87,8 +90,9 @@ SELECT * FROM SEMANTIC_VIEW(
 ) ORDER BY PROSPECT_RANK;
 ```
 
-> 論理テーブル名・ディメンション名・メトリクス名は、自分で作ったセマンティックビューの名前に合わせて読み替えてください。
-> 完成版（answers）の名前で作っている場合、A ランクは 17件・1,156,322,000円 になります。
+> 論理テーブル名・ディメンション名・メトリクス名は、完成版（answers）の名前です。
+> 自分で作ったセマンティックビューで動かないときは、CoCo に「この SQL が私のセマンティックビューで動くように直して」と頼んでください。
+> 完成版の場合、A ランクは 17件・1,156,322,000円 になります。
 
 ---
 

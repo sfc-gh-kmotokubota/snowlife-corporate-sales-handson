@@ -86,6 +86,7 @@ DESCRIBE AGENT SNOWLIFE_HANDSON_DB.AI.SALES_AGENT;
 ```
 
 > **間に合わなかった場合:** `answers/part4_skill.sql` を実行すると、見本の SKILL.md の配置と3スキルの登録をまとめて行います。
+> この SQL は Agent の設定全体を置き換えるため、画面で追加したスキルの設定も上書きされます（同じ3スキルが登録された状態になります）。
 
 ---
 

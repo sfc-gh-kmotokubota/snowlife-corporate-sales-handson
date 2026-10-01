@@ -14,7 +14,15 @@
 
 ## 3-1. Agent を作る（5分）
 
-`answers/part3_agents.sql` を Workspaces で開き、Run All で実行してください。
+まず Part 2 のセマンティックビューができているか確認します。
+
+```sql
+SHOW SEMANTIC VIEWS IN SCHEMA SNOWLIFE_HANDSON_DB.AI;
+```
+
+`SV_SALES_ANALYTICS` が一覧になければ、先に `answers/part2_semantic_view.sql` を実行してください。
+
+続けて `answers/part3_agents.sql` を Workspaces で開き、Run All で実行してください。
 2つの Agent が作成され、CoWork に表示されるよう CoWork オブジェクトに追加されます。
 
 > **Snowsight の画面で作りたい場合**
@@ -62,8 +70,8 @@ Agent の誤答は、Semantic Studio の CoCo に調べさせて直せます。�
 
 1. **AI & ML » Agents** で `SALES_AGENT_BASIC`（A）を開き、**Monitoring** タブを開く
 2. 3-2 で A が間違えた質問（例: Q2）のリクエストを選び、**リクエスト ID** をコピーする
-3. Workspaces で **+ Add new » Semantic View** の画面ではなく、既存のセマンティックビュー `SV_SALES_MINIMAL` を開く
-   （CoCo に「SNOWLIFE_HANDSON_DB.AI.SV_SALES_MINIMAL を開いて」と頼むと開いてくれます）
+3. Workspaces で、既存のセマンティックビュー `SV_SALES_MINIMAL` を開く（新規作成はしません）。
+   CoCo に「SNOWLIFE_HANDSON_DB.AI.SV_SALES_MINIMAL を開いて」と頼むと開いてくれます
 4. CoCo に次のように送る
 
 ```

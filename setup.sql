@@ -73,14 +73,14 @@ CREATE SCHEMA IF NOT EXISTS MART     COMMENT = '営業分析用に整形した�
 CREATE SCHEMA IF NOT EXISTS AI       COMMENT = 'セマンティックビュー・Cortex Search・Cortex Agent';
 CREATE SCHEMA IF NOT EXISTS SECURITY COMMENT = '行アクセスポリシーと権限マッピング';
 
-USE SCHEMA RAW;
+USE SCHEMA SNOWLIFE_HANDSON_DB.RAW;
 
 -- CSV を受け取るステージ
 CREATE OR REPLACE STAGE DATA_STAGE
     ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE')
     COMMENT    = 'CRM・外部データの CSV';
 
--- PDF を受け取るステージ（AI_PARSE_DOCUMENT はサーバーサイド暗号化のステージが必要です）
+-- PDF を受け取るステージ（AI_PARSE_DOCUMENT・AI_EXTRACT で読み込みます）
 CREATE OR REPLACE STAGE DOC_STAGE
     ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE')
     DIRECTORY  = (ENABLE = TRUE)
@@ -88,7 +88,8 @@ CREATE OR REPLACE STAGE DOC_STAGE
 
 -- Cortex Agent の skills を置くステージ
 -- 注意: SKILL.md は各スキルフォルダの直下に置く必要があります（サブディレクトリは探索されません）
-CREATE OR REPLACE STAGE AI.SKILL_STAGE
+-- 再実行しても Part 4 でアップロードした SKILL.md が消えないよう、IF NOT EXISTS で作成します
+CREATE STAGE IF NOT EXISTS SNOWLIFE_HANDSON_DB.AI.SKILL_STAGE
     ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE')
     DIRECTORY  = (ENABLE = TRUE)
     COMMENT    = 'Cortex Agent skills（SKILL.md）';
@@ -136,9 +137,9 @@ COPY FILES INTO @DOC_STAGE
 ALTER STAGE DOC_STAGE REFRESH;
 
 -- 結果として @AI.SKILL_STAGE/skills/<スキル名>/SKILL.md の階層になります
-COPY FILES INTO @AI.SKILL_STAGE/skills/
+COPY FILES INTO @SNOWLIFE_HANDSON_DB.AI.SKILL_STAGE/skills/
     FROM @SNOWLIFE_HANDSON_REPO/branches/main/skills/;
-ALTER STAGE AI.SKILL_STAGE REFRESH;
+ALTER STAGE SNOWLIFE_HANDSON_DB.AI.SKILL_STAGE REFRESH;
 
 LS @DOC_STAGE;
 
@@ -269,7 +270,7 @@ SELECT '【Step 6】財務企画部データのロードが完了しました' A
 -- キー体系の違う他部署・外部データを、CRM の取引先 ID（ACCT_ID）で引けるように整えます。
 -- ============================================================================
 
-USE SCHEMA MART;
+USE SCHEMA SNOWLIFE_HANDSON_DB.MART;
 
 CREATE OR REPLACE VIEW V_COMPANY_FINANCIALS AS
 SELECT a.ACCT_ID,
@@ -294,7 +295,7 @@ SELECT '【Step 7】データマートの作成が完了しました' AS status;
 -- Step 8: 商品資料 PDF の構造化と Cortex Search の作成（AI）
 -- ============================================================================
 
-USE SCHEMA AI;
+USE SCHEMA SNOWLIFE_HANDSON_DB.AI;
 
 -- 8-1. 商品パンフレット・約款 PDF をテキスト化してチャンクに分割する
 --      （Part 1 では面談記録 PDF で同じ処理を体験します）
@@ -412,7 +413,7 @@ SELECT '【Step 9】比較用の最小セマンティックビューの作成が
 -- 切り替えると、その権限で回答が返るようになります。
 -- ============================================================================
 
-USE SCHEMA SECURITY;
+USE SCHEMA SNOWLIFE_HANDSON_DB.SECURITY;
 
 CREATE ROLE IF NOT EXISTS SNOWLIFE_SALES_REP_T01
     COMMENT = 'スノー生命 東京第一法人営業部の営業職員ロール（ハンズオン用）';
