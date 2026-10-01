@@ -1,0 +1,94 @@
+# Part 2: Semantic Studio でセマンティックビューを作る（25分）
+
+## このパートでやること
+
+Part 1 で見た「列名とコード値だけでは意味が分からない」データに、業務上の意味を与えます。
+Snowsight の Workspaces にある **Semantic Studio** を使い、CoCo と会話しながら作ります。
+
+作るもの: `SNOWLIFE_HANDSON_DB.AI.SV_SALES_ANALYTICS`
+
+> **名前は必ずこの通りにしてください。** Part 3 の Agent B がこの名前を参照します。
+
+---
+
+## 2-1. CoCo との会話でたたき台を作る（8分）
+
+1. **Projects » Workspaces** を開き、README の手順で追加した `snowlife-corporate-sales-handson` ワークスペースを開く
+2. **+ Add new » Semantic View** を選ぶ（Semantic View Autopilot が開きます）
+3. CoCo と会話して作る方法を選び、次のプロンプトを送る
+
+```
+SNOWLIFE_HANDSON_DB.RAW の SF_ACCOUNT、SF_OPPORTUNITY、SF_ACTIVITY、SF_CONTRACT、SF_USER、MST_PRODUCT と、
+SNOWLIFE_HANDSON_DB.MART の V_COMPANY_FINANCIALS、V_JOB_POSTINGS を使って、
+法人営業の分析用セマンティックビューを作ってください。
+名前は SV_SALES_ANALYTICS、作成先は SNOWLIFE_HANDSON_DB.AI です。
+各テーブルは ACCT_ID で SF_ACCOUNT と結合し、SF_ACCOUNT は OWNER_ID で SF_USER と結合します。
+商談と既契約は PRD_CD で MST_PRODUCT と結合します。
+```
+
+4. 生成された `.sv.yaml` がエディタに開くまで待つ
+
+---
+
+## 2-2. 中身を確認する（5分）
+
+エディタの YAML と、フォーム画面（論理テーブルの一覧）の両方を見てください。
+
+| 見るところ | 確認すること |
+|---|---|
+| 論理テーブル（tables） | 8つのテーブルがあり、主キーが設定されているか |
+| リレーション（relationships） | 取引先を中心に、商談・活動・既契約・財務・求人がつながっているか |
+| ディメンション / ファクト / メトリクス | どの列が「切り口」、どの列が「数値」として扱われているか |
+
+---
+
+## 2-3. 業務の言葉を手で入れる（7分）
+
+ここがこのハンズオンで一番大事な作業です。
+**同義語と説明は、AI に自動生成させず手で入れてください。** Snowflake のドキュメントでも、自動生成した同義語はセマンティックビューの品質を下げやすいため、手入力が推奨されています。
+
+フォーム画面の各項目の **Edit** から、少なくとも次の4つを入れてください（YAML を直接編集しても構いません）。
+
+| 列 | 入れる内容 |
+|---|---|
+| `SF_OPPORTUNITY.AMT_EST` | 説明: 「見込み金額（年換算保険料）。**千円単位**」。円で集計するため、式を `AMT_EST * 1000` にしたファクトを作るとさらに良い |
+| `SF_OPPORTUNITY.STAGE_CD` | 説明: 「10=初回提案、20=ニーズ確認、30=提案中、40=最終交渉、**90=受注**、**99=失注**。進行中は 90・99 以外」 |
+| `SF_OPPORTUNITY.RANK_FLG` | 同義語: 「見込みランク」「ランク」。説明: 「S > A > B > C の順に確度が高い」 |
+| `SF_ACTIVITY.ACT_TYP` | 説明: 「V=訪問（対面）、O=オンライン面談、T=電話。**訪問は V のみ**」 |
+
+時間があれば次も入れてみてください。
+
+- `SF_ACCOUNT.BR_CD`: 「T01=東京第一法人営業部、T02=東京第二法人営業部、K01=関西法人営業部、C01=中部法人営業部」
+- `SF_ACCOUNT.IND_CD`: 「MFG=製造業、TRD=商社、ITC=情報通信業 …」
+- `SF_CONTRACT.STS_CD`: 「1=有効、9=解約」
+
+---
+
+## 2-4. カスタム指示と検証済みクエリを CoCo に追加させる（5分）
+
+同じ CoCo の会話に、次のプロンプトを送ってください。
+
+```
+このセマンティックビューに次を追加してください。
+1. カスタム指示（SQL 生成）: 年度は4月始まり。金額は円で返す。「訪問」は ACT_TYP = 'V' のみ。
+2. 検証済みクエリ: 「進行中の商談の見込みランク別の件数と見込み金額合計（円）」
+```
+
+追加されたら、右上の **Deploy** を押します。差分プレビューを確認してから反映してください。
+
+Deploy できたら、Semantic Studio の画面から次の質問を試し、金額が円で返ることを確認します。
+
+```
+進行中の商談の見込み金額合計はいくら？
+```
+
+---
+
+## 間に合わなかった場合
+
+`answers/part2_semantic_view.sql` を SQL ファイルで開いて実行すると、完成版が作成されます。
+YAML 版は `answers/part2_semantic_view.yaml` です。Semantic Studio の `.sv.yaml` に貼り付けて Deploy しても同じ結果になります。
+
+---
+
+次は [Part 3: Cortex Agent の精度を比べる](part3_agent_ab.md) です。
