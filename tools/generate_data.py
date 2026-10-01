@@ -250,71 +250,11 @@ def gen_meeting_notes(acts):
 # PDF（商品パンフレット・約款抜粋・面談記録）
 # ---------------------------------------------------------------------------
 def gen_pdfs():
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.pdfbase import pdfmetrics
-    from reportlab.pdfbase.ttfonts import TTFont
-    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from pdf_docs import build_all
 
-    pdfmetrics.registerFont(TTFont("JP", "/System/Library/Fonts/Supplemental/Arial Unicode.ttf"))
-    h1 = ParagraphStyle("h1", fontName="JP", fontSize=16, leading=24, spaceAfter=10)
-    h2 = ParagraphStyle("h2", fontName="JP", fontSize=12.5, leading=20, spaceBefore=8, spaceAfter=4)
-    body = ParagraphStyle("b", fontName="JP", fontSize=10.5, leading=17)
-
-    def build(fname, title, sections):
-        doc = SimpleDocTemplate(str(DOC_DIR / fname), pagesize=A4, title=title,
-                                leftMargin=50, rightMargin=50, topMargin=50, bottomMargin=50)
-        story = [Paragraph(title, h1)]
-        for head, paras in sections:
-            story.append(Paragraph(head, h2))
-            for p in paras:
-                story.append(Paragraph(p, body))
-                story.append(Spacer(1, 4))
-        story.append(Spacer(1, 12))
-        story.append(Paragraph("※本資料はハンズオン用に作成した架空の資料です。実在の保険会社・商品とは関係ありません。", body))
-        doc.build(story)
-
-    build("product/gltd_brochure.pdf", "スノー生命 団体長期障害所得補償保険（GLTD）のご案内", [
-        ("1. 商品の概要", ["病気やケガで長期間働けなくなった従業員の所得を、最長で定年まで補償する団体保険です。",
-                        "健康保険の傷病手当金（最長1年6か月）が終了した後の収入減少に備えられます。"]),
-        ("2. 主な特長", ["補償額は月額給与の最大60%まで設定できます。",
-                       "精神疾患による就業不能も補償の対象です（支払期間は最長2年）。",
-                       "企業が保険料を負担する基本プランと、従業員が任意で上乗せできるプランを組み合わせられます。"]),
-        ("3. 導入メリット", ["人的資本開示において、就業不能リスクへの備えを定量的に示せます。",
-                         "採用・定着の観点で福利厚生の差別化になります。"]),
-        ("4. 引受条件", ["加入対象は従業員50名以上の法人です。", "てん補期間は免責期間（180日）経過後から開始します。"]),
-    ])
-    build("product/group_term_terms.pdf", "総合福祉団体定期保険 約款抜粋（ハンズオン用）", [
-        ("第1条 保険金の支払", ["被保険者が保険期間中に死亡したときは、死亡保険金を支払います。",
-                            "被保険者が保険期間中に所定の高度障害状態に該当したときは、高度障害保険金を支払います。"]),
-        ("第5条 保険期間と更新", ["保険期間は1年とし、契約者から申し出がない限り同一条件で更新します。",
-                            "更新時の保険料は、更新日現在の被保険者の年齢と人数により再計算します。"]),
-        ("第9条 告知義務", ["加入時に所定の告知が必要です。告知内容が事実と異なる場合、保険金を支払えないことがあります。"]),
-        ("第12条 契約の解約", ["契約者はいつでも将来に向かって契約を解約できます。団体定期保険には解約返戻金はありません。"]),
-    ])
-    build("product/wellness_star.pdf", "健康経営支援サービス Wellness-Star サービス概要", [
-        ("サービス内容", ["健康診断・ストレスチェックの結果を匿名化して分析し、部署別の健康リスクを可視化します。",
-                       "健康経営優良法人の認定申請に必要な取り組みの棚卸しを支援します。"]),
-        ("提供条件", ["団体保険の契約がある法人は無償で利用できます。契約がない法人は年額制で提供します。"]),
-        ("関連商品", ["団体医療保険、団体がん保険、GLTD と組み合わせると、予防から就業不能時の補償までを一体で提案できます。"]),
-    ])
-    build("meeting/kddi_20260910.pdf", "面談記録 KDDI(株) 2026年9月10日", [
-        ("出席者", ["先方: 人事部長 野沢様、厚生課長 浜田様 / 当社: 鈴木（東京第一法人営業部）"]),
-        ("議題", ["エンジニア採用強化に伴う福利厚生の見直し、人的資本開示の指標について"]),
-        ("内容", ["2026年度下期からエンジニア採用を前年比2倍に増やす計画。採用競争力の観点で、就業不能時の所得補償（GLTD）を検討したい。",
-                "人的資本開示では、福利厚生の充実度を加入率で示したい。現状の団体定期保険の加入率は約72%。",
-                "健康経営優良法人ホワイト500の継続取得のため、ストレスチェック結果の活用にも関心がある。"]),
-        ("次回アクション", ["GLTD と Wellness-Star を組み合わせた提案書を10月中旬までに提出する。",
-                         "加入率向上の施策事例を3社分用意する。"]),
-    ])
-    build("meeting/panasonic_20260822.pdf", "面談記録 パナソニック ホールディングス(株) 2026年8月22日", [
-        ("出席者", ["先方: グループ人事部 総合厚生課長 松本様 / 当社: 高橋（関西法人営業部）"]),
-        ("議題", ["DB 制度の一部 DC 移行、グループ会社間の制度統一"]),
-        ("内容", ["2027年4月を目途に、DB 制度の一部を企業型 DC へ移行する方向で検討を開始した。",
-                "移行に伴う従業員説明会を年内に実施したい。想定利回りの設定根拠を知りたい。",
-                "グループ会社ごとに団体定期保険の契約が分かれており、一本化によるコスト削減に関心がある。"]),
-        ("次回アクション", ["DC 移行の他社事例と説明会資料のひな形を提示する。", "団体定期保険の一本化シミュレーションを作成する。"]),
-    ])
+    build_all(DOC_DIR)
 
 
 def main():
