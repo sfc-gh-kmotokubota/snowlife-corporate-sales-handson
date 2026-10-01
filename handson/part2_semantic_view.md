@@ -76,11 +76,19 @@ SNOWLIFE_HANDSON_DB.MART の V_COMPANY_FINANCIALS、V_JOB_POSTINGS を使って�
 
 追加されたら、右上の **Deploy** を押します。差分プレビューを確認してから反映してください。
 
-Deploy できたら、Semantic Studio の画面から次の質問を試し、金額が円で返ることを確認します。
+Deploy できたら、SQL ファイルで次を実行し、見込み金額が**円**で返ることを確認します（セマンティックビューは SQL からも直接クエリできます）。
 
+```sql
+SELECT * FROM SEMANTIC_VIEW(
+    SNOWLIFE_HANDSON_DB.AI.SV_SALES_ANALYTICS
+    DIMENSIONS OPPORTUNITIES.PROSPECT_RANK
+    METRICS OPPORTUNITIES.TOTAL_EXPECTED_PREMIUM_JPY, OPPORTUNITIES.OPPORTUNITY_COUNT
+    WHERE OPPORTUNITIES.IS_OPEN
+) ORDER BY PROSPECT_RANK;
 ```
-進行中の商談の見込み金額合計はいくら？
-```
+
+> 論理テーブル名・ディメンション名・メトリクス名は、自分で作ったセマンティックビューの名前に合わせて読み替えてください。
+> 完成版（answers）の名前で作っている場合、A ランクは 17件・1,156,322,000円 になります。
 
 ---
 
