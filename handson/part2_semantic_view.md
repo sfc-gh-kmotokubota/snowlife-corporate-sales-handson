@@ -1,5 +1,8 @@
 # Part 2: Semantic Studio でセマンティックビューを作る（25分）
 
+> **このページの手順を上から順にコピペして進めれば完了します。**
+> 「CoCo に送る」の枠は CoCo パネルに、「SQL」の枠は Workspaces の SQL ファイルに、「CoWork に送る」の枠は ai.snowflake.com のチャット欄に、そのまま貼り付けてください（枠の右上のボタンでコピーできます）。
+
 ## このパートでやること
 
 Part 1 で見た「列名とコード値だけでは意味が分からない」データに、業務上の意味を与えます。
@@ -16,6 +19,8 @@ Snowsight の Workspaces にある **Semantic Studio** を使い、CoCo と会�
 1. **Projects » Workspaces** を開き、README の手順で追加した `snowlife-corporate-sales-handson` ワークスペースを開く
 2. **+ Add new » Semantic View** を選ぶ（Semantic View Autopilot が開きます）
 3. CoCo と会話して作る方法を選び、次のプロンプトを送る
+
+**CoCo に送る**
 
 ```
 このセマンティックビューには、次の8つのテーブルを使ってください。
@@ -59,7 +64,22 @@ SNOWLIFE_HANDSON_DB.MART の V_COMPANY_FINANCIALS、V_JOB_POSTINGS。
 | `SF_OPPORTUNITY.RANK_FLG` | 同義語: 「見込みランク」「ランク」。説明: 「S > A > B > C の順に確度が高い」 |
 | `SF_ACTIVITY.ACT_TYP` | 説明: 「V=訪問（対面）、O=オンライン面談、T=電話。**訪問は V のみ**」 |
 
-時間があれば次も入れてみてください。
+> **フォームで探しにくいときは CoCo に頼めます。** 同じ会話に次を送ると、上の4つを入れた差分を作ってくれます（内容を確認してから反映してください）。
+
+**CoCo に送る**
+
+```
+次の説明と同義語を、そのままの文言でセマンティックビューに入れてください。自分で言い換えたり、他の同義語を追加したりしないでください。
+- SF_OPPORTUNITY.AMT_EST: 説明「見込み金額（年換算保険料）。千円単位」。さらに式 AMT_EST * 1000 の円単位のファクトと、その合計のメトリクスを追加
+- SF_OPPORTUNITY.STAGE_CD: 説明「10=初回提案、20=ニーズ確認、30=提案中、40=最終交渉、90=受注、99=失注。進行中は 90・99 以外」
+- SF_OPPORTUNITY.RANK_FLG: 同義語「見込みランク」「ランク」。説明「S > A > B > C の順に確度が高い」
+- SF_ACTIVITY.ACT_TYP: 説明「V=訪問（対面）、O=オンライン面談、T=電話。訪問は V のみ」
+- SF_ACCOUNT.BR_CD: 説明「T01=東京第一法人営業部、T02=東京第二法人営業部、K01=関西法人営業部、C01=中部法人営業部」
+- SF_ACCOUNT.IND_CD: 説明「MFG=製造業、TRD=商社、ITC=情報通信業、FIN=金融業、ENE=電気・ガス業、RTL=小売業、CON=建設業、TRN=運輸業、RES=不動産業」
+- SF_CONTRACT.STS_CD: 説明「1=有効、9=解約」
+```
+
+時間があれば次も入れてみてください（上の CoCo プロンプトには含まれています）。
 
 - `SF_ACCOUNT.BR_CD`: 「T01=東京第一法人営業部、T02=東京第二法人営業部、K01=関西法人営業部、C01=中部法人営業部」
 - `SF_ACCOUNT.IND_CD`: 「MFG=製造業、TRD=商社、ITC=情報通信業、FIN=金融業、ENE=電気・ガス業、RTL=小売業、CON=建設業、TRN=運輸業、RES=不動産業」
@@ -71,6 +91,8 @@ SNOWLIFE_HANDSON_DB.MART の V_COMPANY_FINANCIALS、V_JOB_POSTINGS。
 
 同じ CoCo の会話に、次のプロンプトを送ってください。
 
+**CoCo に送る**
+
 ```
 このセマンティックビューに次を追加してください。
 1. カスタム指示（SQL 生成）: 年度は4月始まり。金額は円で返す。「訪問」は ACT_TYP = 'V' のみ。
@@ -80,6 +102,8 @@ SNOWLIFE_HANDSON_DB.MART の V_COMPANY_FINANCIALS、V_JOB_POSTINGS。
 追加されたら、右上の **Deploy** を押します。差分プレビューを確認してから反映してください。
 
 Deploy できたら、SQL ファイルで次を実行し、見込み金額が**円**で返ることを確認します（セマンティックビューは SQL からも直接クエリできます）。
+
+**SQL**
 
 ```sql
 SELECT * FROM SEMANTIC_VIEW(

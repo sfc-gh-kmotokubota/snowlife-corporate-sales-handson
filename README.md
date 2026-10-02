@@ -45,6 +45,10 @@ CRM・面談記録 PDF・他部署データ・外部データを Snowflake に�
 **確認** の項目をすべて満たせたら、次の Part へ進んでください。うまくいかないときは **困ったら** を見てください。
 時刻は開始からの目安です。
 
+> **当日は各 Part の「手順書」を開き、上から順にコピペして進めれば完了します。**
+> CoCo に送るプロンプト、実行する SQL、Snowsight の画面に入力する値は、すべて手順書にそのまま貼れる形で書いてあります。
+> 枞の上に「CoCo に送る」「SQL」「CoWork に送る」と貼り付け先を書いているので、その場所に貼ってください。
+
 ```mermaid
 flowchart LR
   p0["Part 0<br>環境構築"] --> p1["Part 1<br>データを見る"] --> p2["Part 2<br>意味を教える"] --> p3["Part 3<br>精度を比べる"] --> p4["Part 4<br>業務をスキルに"] --> p5["Part 5<br>営業職員で使う"]
@@ -95,7 +99,7 @@ flowchart LR
 
 **やること:** 意味づけのない Agent A と、意味づけのある Agent B に同じ質問をして、回答を比べます。
 
-1. [answers/part3_agents.sql](answers/part3_agents.sql) を実行して、2つの Agent を作る
+1. 2つの Agent を作る（[answers/part3_agents.sql](answers/part3_agents.sql) を実行するか、手順書の入力値を貼って画面で Agent B を作る）
 2. ai.snowflake.com を2つのタブで開き、A と B に同じ4問を聞く
 3. [スコアシート](handson/scoresheet.md) に ○ / △ / × を付け、[正解](handson/eval_questions.md) と見比べる
 4. A が間違えた質問の原因を、CoCo に調べてもらう
@@ -114,7 +118,7 @@ flowchart LR
 
 1. 自社の訪問準備の流れを、メモに書き出す
 2. CoCo と一緒に `SKILL.md` を書く
-3. ステージにアップロードし、Agent B にスキルを登録する
+3. SKILL.md の中身を SQL に貼ってステージに置き、Agent B にスキルを登録する（ファイルのダウンロード・アップロードは不要）
 4. CoWork で「KDDIの訪問準備をして」と頼む
 
 **確認**

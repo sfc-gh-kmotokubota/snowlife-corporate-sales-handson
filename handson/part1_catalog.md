@@ -1,5 +1,8 @@
 # Part 1: データとカタログを確認する（15分）
 
+> **このページの手順を上から順にコピペして進めれば完了します。**
+> 「CoCo に送る」の枠は CoCo パネルに、「SQL」の枠は Workspaces の SQL ファイルに、「CoWork に送る」の枠は ai.snowflake.com のチャット欄に、そのまま貼り付けてください（枠の右上のボタンでコピーできます）。
+
 ## このパートでやること
 
 setup.sql で入ったデータを、Horizon Catalog と CoCo で確認します。
@@ -33,6 +36,8 @@ setup.sql で入ったデータを、Horizon Catalog と CoCo で確認します
 画面右下の CoCo アイコンを押してパネルを開き、次のプロンプトを順に送ってください。
 `@` を入力するとテーブルを検索して指定できます。
 
+**CoCo に送る**
+
 ```
 SNOWLIFE_HANDSON_DB にはどんなデータがありますか？スキーマとテーブルごとに1行で説明してください。
 ```
@@ -55,6 +60,8 @@ AMT_EST の単位は円ですか、千円ですか？データから判断でき
 
 `RAW.DOC_STAGE/meeting/` に面談記録の PDF が2つ入っています。
 Workspaces で新しい SQL ファイルを作り、次の SQL を実行してください。
+
+**SQL**
 
 ```sql
 USE ROLE ACCOUNTADMIN;
