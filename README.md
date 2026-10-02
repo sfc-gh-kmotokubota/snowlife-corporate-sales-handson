@@ -47,7 +47,9 @@ CRM・面談記録 PDF・他部署データ・外部データを Snowflake に�
 
 > **当日は各 Part の「手順書」を開き、上から順にコピペして進めれば完了します。**
 > CoCo に送るプロンプト、実行する SQL、Snowsight の画面に入力する値は、すべて手順書にそのまま貼れる形で書いてあります。
-> 枞の上に「CoCo に送る」「SQL」「CoWork に送る」と貼り付け先を書いているので、その場所に貼ってください。
+> 枠の上に「CoCo に送る」「SQL」「CoWork に送る」と貼り付け先を書いているので、その場所に貼ってください。
+>
+> 各手順書の冒頭には、**アーキテクチャのどこを作るかの図**（青色が今の Part）と、**「なぜ Snowflake でやるのか」** の説明があります。作業の前に読んで、目的を確認してから進めてください。
 
 ```mermaid
 flowchart LR
@@ -99,7 +101,7 @@ flowchart LR
 
 **やること:** 意味づけのない Agent A と、意味づけのある Agent B に同じ質問をして、回答を比べます。
 
-1. 2つの Agent を作る（[answers/part3_agents.sql](answers/part3_agents.sql) を実行するか、手順書の入力値を貼って画面で Agent B を作る）
+1. 2つの Agent を作る（[answers/part3_agents.sql](answers/part3_agents.sql) を実行するか、手順書の入力値を貼って画面で Agent B を作る。オーケストレーションの指示・応答の指示も手順書の枠から貼れます）
 2. ai.snowflake.com を2つのタブで開き、A と B に同じ4問を聞く
 3. [スコアシート](handson/scoresheet.md) に ○ / △ / × を付け、[正解](handson/eval_questions.md) と見比べる
 4. A が間違えた質問の原因を、CoCo に調べてもらう
@@ -109,6 +111,8 @@ flowchart LR
 - [ ] 回答の「思考ステップ」を開き、A と B の SQL の違い（`AMT_EST` のままか、`AMT_EST * 1000` か）を見た
 
 **注意:** 4 では修正案を見るだけにして、`SV_SALES_MINIMAL` は **Deploy しないでください**（A と B を比べられなくなります）。
+
+**この Part のポイント:** A と B は指示文も同じで、違いはセマンティックビューだけです。「業務の取り決めはセマンティックビューに、指示文はツールの使い分けと回答の形に」という書き分けは、手順書の 3-4 にまとめています。
 
 ### 休憩（1:10〜1:20）
 
@@ -269,9 +273,10 @@ snowlife-corporate-sales-handson/
 ├── cleanup.sql               # 後片付け
 ├── handson/                  # 各 Part の手順書・評価10問・スコアシート
 ├── answers/                  # 答え合わせ（セマンティックビュー・Agent・スキル・正解SQL）
+│   └── agent_instructions/   # Agent の指示文の原文（オーケストレーション・応答）
 ├── skills/                   # 配布するスキル（proposal-prep / compliance-check）
 ├── data/csv/  data/docs/     # デモデータ（CSV と PDF）
-└── tools/                    # 講師用スクリプト（データ生成・A/B 評価）
+└── tools/                    # 講師用スクリプト（データ・PDF 生成、指示文の SQL 反映 build_agent_sql.py）
 ```
 
 ---
