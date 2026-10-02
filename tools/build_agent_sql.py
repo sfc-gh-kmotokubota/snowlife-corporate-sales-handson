@@ -31,14 +31,12 @@ def replace_instructions(sql: str, specs: list[str]) -> str:
 def main() -> None:
     orch = (INS / "orchestration_common.txt").read_text()
     resp = (INS / "response_common.txt").read_text()
-    rules = (INS / "orchestration_rules_for_minimal_sv.txt").read_text()
 
     common = instructions(orch, resp)
-    with_rules = instructions(orch.rstrip("\n") + "\n\n" + rules.strip("\n") + "\n", resp)
     with_skills = instructions(orch.rstrip("\n") + "\n\n" + SKILL_LINE + "\n", resp)
 
     p3 = ROOT / "answers" / "part3_agents.sql"
-    p3.write_text(replace_instructions(p3.read_text(), [common, common, with_rules]))
+    p3.write_text(replace_instructions(p3.read_text(), [common, common]))
 
     p4 = ROOT / "answers" / "part4_skill.sql"
     p4.write_text(replace_instructions(p4.read_text(), [with_skills]))
