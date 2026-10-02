@@ -9,7 +9,7 @@
 ```mermaid
 flowchart LR
   subgraph sources [データソース]
-    crm["CRM（Salesforce）"]
+    crm["CRM（営業管理システム）"]
     pdf["面談記録・商品資料 PDF"]
     fin["財務企画部データ"]
     ext["外部データ（求人）"]
