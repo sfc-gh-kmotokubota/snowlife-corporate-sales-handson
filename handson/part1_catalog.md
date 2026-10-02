@@ -3,6 +3,61 @@
 > **このページの手順を上から順にコピペして進めれば完了します。**
 > 「CoCo に送る」の枠は CoCo パネルに、「SQL」の枠は Workspaces の SQL ファイルに、「CoWork に送る」の枠は ai.snowflake.com のチャット欄に、そのまま貼り付けてください（枠の右上のボタンでコピーできます）。
 
+## この Part で作るところ
+
+```mermaid
+flowchart LR
+  subgraph sources [データソース]
+    crm["CRM（Salesforce）"]
+    pdf["面談記録・商品資料 PDF"]
+    fin["財務企画部データ"]
+    ext["外部データ（求人）"]
+  end
+  subgraph sf [Snowflake（AI データ基盤）]
+    raw["データの集約<br>RAW / MART"]
+    search["文書検索<br>Cortex Search"]
+    sv["業務の意味づけ<br>セマンティックビュー"]
+    agent["Cortex Agent<br>＋業務スキル"]
+    gov["権限管理<br>行アクセスポリシー"]
+  end
+  crm --> raw
+  ext --> raw
+  fin --> raw
+  pdf -->|"AI_PARSE_DOCUMENT<br>AI_EXTRACT"| search
+  raw --> sv
+  sv --> agent
+  search --> agent
+  gov -.- raw
+  agent --> cowork["CoWork<br>（法人営業職員）"]
+  classDef now fill:#29B5E8,stroke:#11567F,color:#ffffff,stroke-width:3px
+  class raw,search now
+```
+
+**青色の部分** がこの Part で扱うところです。
+
+## なぜ Snowflake でやるのか
+
+> **よくある考え:** 「資料は OneDrive に置けば検索できるし、商談は Salesforce で見られる。わざわざ集める必要はあるの？」
+
+OneDrive の検索は「該当するファイルを見つける」ことは得意ですが、「A ランクの商談の見込み金額を支社別に合計する」ことはできません。
+Salesforce のレポートは商談の集計は得意ですが、財務企画部の決算データや外部の求人データ、PDF の面談記録の中身とは組み合わせられません。
+
+営業企画で本当に知りたいのは、たとえば **「売上が伸びていて、求人も増えていて、まだ GLTD を提案していない取引先」** のような、複数のシステムをまたぐ問いです。
+AI に答えさせる場合も同じで、**AI が参照できる場所にデータがそろっていなければ、AI はそもそも答えられません。**
+
+Snowflake に集めると、次のことができるようになります。
+
+| | OneDrive / Salesforce それぞれで管理 | Snowflake に集約 |
+|---|---|---|
+| CRM・財務・外部データの掛け合わせ | 各システムから Excel に書き出して手作業で突き合わせ | 1つの SQL・1つの質問で横断して集計 |
+| PDF の中身 | ファイル単位の検索のみ | `AI_EXTRACT` で項目を抜き出して表として集計・検索 |
+| データの鮮度 | 書き出した時点で止まる | 元データから定期的に取り込み、常に同じ最新データを参照 |
+| AI からの利用 | ツールごとに別々のデータを見る | すべての AI 機能が同じデータを参照 |
+
+この Part では、**「集めたデータがそのままでは AI にも人にも意味が分からない」** ことも確かめます。それが次の Part 2 につながります。
+
+---
+
 ## このパートでやること
 
 setup.sql で入ったデータを、Horizon Catalog と CoCo で確認します。

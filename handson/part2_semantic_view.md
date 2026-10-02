@@ -3,6 +3,57 @@
 > **このページの手順を上から順にコピペして進めれば完了します。**
 > 「CoCo に送る」の枠は CoCo パネルに、「SQL」の枠は Workspaces の SQL ファイルに、「CoWork に送る」の枠は ai.snowflake.com のチャット欄に、そのまま貼り付けてください（枠の右上のボタンでコピーできます）。
 
+## この Part で作るところ
+
+```mermaid
+flowchart LR
+  subgraph sources [データソース]
+    crm["CRM（Salesforce）"]
+    pdf["面談記録・商品資料 PDF"]
+    fin["財務企画部データ"]
+    ext["外部データ（求人）"]
+  end
+  subgraph sf [Snowflake（AI データ基盤）]
+    raw["データの集約<br>RAW / MART"]
+    search["文書検索<br>Cortex Search"]
+    sv["業務の意味づけ<br>セマンティックビュー"]
+    agent["Cortex Agent<br>＋業務スキル"]
+    gov["権限管理<br>行アクセスポリシー"]
+  end
+  crm --> raw
+  ext --> raw
+  fin --> raw
+  pdf -->|"AI_PARSE_DOCUMENT<br>AI_EXTRACT"| search
+  raw --> sv
+  sv --> agent
+  search --> agent
+  gov -.- raw
+  agent --> cowork["CoWork<br>（法人営業職員）"]
+  classDef now fill:#29B5E8,stroke:#11567F,color:#ffffff,stroke-width:3px
+  class sv now
+```
+
+**青色の部分** がこの Part で扱うところです。
+
+## なぜ Snowflake でやるのか
+
+> **よくある考え:** 「AI は賢いのだから、データを渡せば意味は勝手に理解してくれるのでは？」
+
+Part 1 で見たとおり、`AMT_EST = 48000` が 4.8万円なのか 4,800万円なのか、`STAGE_CD = 90` が受注なのかは、**データの中には書かれていません。**
+こうした取り決めは、今はベテラン社員の頭の中や、Excel の注記、システムの仕様書に散らばっています。人は経験で補えますが、AI は補えません。もっともらしい数字を自信を持って返してしまいます。
+
+セマンティックビューは、この **業務の取り決めをデータの横に1回だけ書いておく場所** です。
+
+| | 取り決めを各所に散らばらせたまま | セマンティックビューに書く |
+|---|---|---|
+| 「千円単位」「90=受注」 | 人の記憶・Excel の注記・仕様書 | データの定義として Snowflake に保存 |
+| AI ごとの答えのばらつき | ツールごとに解釈が違い、答えが合わない | Agent・CoCo・BI ツールが同じ定義を使う |
+| 「受注件数」の定義変更 | 関係する資料やレポートを全部直す | セマンティックビューを1か所直せば全体に反映 |
+
+**AI の精度を上げる一番の近道は、AI に業務の言葉を教えることです。** この Part の作業が、Part 3 の回答の差になって表れます。
+
+---
+
 ## このパートでやること
 
 Part 1 で見た「列名とコード値だけでは意味が分からない」データに、業務上の意味を与えます。

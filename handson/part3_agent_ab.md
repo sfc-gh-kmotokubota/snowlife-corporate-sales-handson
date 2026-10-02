@@ -4,6 +4,58 @@
 > 「SQL」の枠は Workspaces の SQL ファイルに、「CoWork に送る」の枠は ai.snowflake.com のチャット欄に、
 > 「入力する値」の表は Snowsight の画面の各欄に、そのままコピーして貼り付けてください。
 
+## この Part で作るところ
+
+```mermaid
+flowchart LR
+  subgraph sources [データソース]
+    crm["CRM（Salesforce）"]
+    pdf["面談記録・商品資料 PDF"]
+    fin["財務企画部データ"]
+    ext["外部データ（求人）"]
+  end
+  subgraph sf [Snowflake（AI データ基盤）]
+    raw["データの集約<br>RAW / MART"]
+    search["文書検索<br>Cortex Search"]
+    sv["業務の意味づけ<br>セマンティックビュー"]
+    agent["Cortex Agent<br>＋業務スキル"]
+    gov["権限管理<br>行アクセスポリシー"]
+  end
+  crm --> raw
+  ext --> raw
+  fin --> raw
+  pdf -->|"AI_PARSE_DOCUMENT<br>AI_EXTRACT"| search
+  raw --> sv
+  sv --> agent
+  search --> agent
+  gov -.- raw
+  agent --> cowork["CoWork<br>（法人営業職員）"]
+  classDef now fill:#29B5E8,stroke:#11567F,color:#ffffff,stroke-width:3px
+  class sv,agent now
+```
+
+**青色の部分** がこの Part で扱うところです。
+
+## なぜ Snowflake でやるのか
+
+> **よくある考え:** 「生成 AI に資料を読ませれば、それなりに答えてくれる。数字が多少違っても大きな問題はないのでは？」
+
+ファイル検索型の AI は、文章を読んで要約することは得意です。一方で「見込み金額の合計」のような数字を聞くと、文書の断片から **それらしい数字を作って答える** ことがあります。どの数字をどう足したのかは、利用者からは確かめられません。
+
+Cortex Agent は、数字の質問には **セマンティックビューを使って実際に SQL を実行** して答えます。
+
+| | ファイル検索型の AI | Snowflake の Cortex Agent |
+|---|---|---|
+| 数字の出し方 | 文書の記述から推測することがある | データに対して SQL を実行して集計 |
+| 根拠の確認 | どの数字を使ったか分かりにくい | 思考ステップで、使った SQL と結果をそのまま確認できる |
+| 間違えたときの改善 | プロンプトを工夫するしかない | Monitoring で誤答を特定し、セマンティックビューを直して全体の精度を上げる |
+| 文章の検索 | 得意 | Cortex Search で同様に可能。数字と文章を1つの回答にまとめられる |
+
+この Part で一番見てほしいのは、**A の誤答が「自然な数字に見える」こと** です。保険の営業で誤った数字が提案書や報告に載ると、信頼に関わります。
+**答えの根拠を確かめられて、間違いを仕組みで直せる** ことが、業務で AI を使うための条件です。
+
+---
+
 ## このパートでやること
 
 ツールも指示文も同じ2つの Agent を作り、同じ質問を投げて回答を比べます。

@@ -3,6 +3,57 @@
 > **このページの手順を上から順にコピペして進めれば完了します。**
 > 「CoCo に送る」の枠は CoCo パネルに、「SQL」の枠は Workspaces の SQL ファイルに、「CoWork に送る」の枠は ai.snowflake.com のチャット欄に、そのまま貼り付けてください（枠の右上のボタンでコピーできます）。
 
+## この Part で作るところ
+
+```mermaid
+flowchart LR
+  subgraph sources [データソース]
+    crm["CRM（Salesforce）"]
+    pdf["面談記録・商品資料 PDF"]
+    fin["財務企画部データ"]
+    ext["外部データ（求人）"]
+  end
+  subgraph sf [Snowflake（AI データ基盤）]
+    raw["データの集約<br>RAW / MART"]
+    search["文書検索<br>Cortex Search"]
+    sv["業務の意味づけ<br>セマンティックビュー"]
+    agent["Cortex Agent<br>＋業務スキル"]
+    gov["権限管理<br>行アクセスポリシー"]
+  end
+  crm --> raw
+  ext --> raw
+  fin --> raw
+  pdf -->|"AI_PARSE_DOCUMENT<br>AI_EXTRACT"| search
+  raw --> sv
+  sv --> agent
+  search --> agent
+  gov -.- raw
+  agent --> cowork["CoWork<br>（法人営業職員）"]
+  classDef now fill:#29B5E8,stroke:#11567F,color:#ffffff,stroke-width:3px
+  class gov,cowork now
+```
+
+**青色の部分** がこの Part で扱うところです。
+
+## なぜ Snowflake でやるのか
+
+> **よくある考え:** 「データを1か所に集めたら、見てはいけない人にも見えてしまうのでは？」
+
+OneDrive の共有設定やファイルのコピーで権限を管理していると、共有リンクが転送されたり、書き出したファイルが残ったりして、**誰が何を見られるのかを把握しきれなくなります。** AI を入れると、AI が見られるファイルの範囲がそのまま回答の範囲になるため、この問題はさらに大きくなります。
+
+Snowflake では、**権限をデータそのものに付けます。**
+
+| | ファイルや共有設定での管理 | Snowflake の権限管理 |
+|---|---|---|
+| 権限を付ける場所 | ファイルやフォルダごとの共有設定 | テーブルの行単位（行アクセスポリシー） |
+| AI 経由のアクセス | AI が見られるファイルの範囲に依存 | テーブルのデータは、SQL でも Agent でも CoWork でも同じルールで絞り込まれる（文書検索の注意点は 5-5） |
+| コピーの発生 | 書き出したファイルが手元に残る | データは Snowflake の中に置いたまま使う |
+| 監査 | 追いにくい | 誰がいつ何を照会したかを記録として確認できる |
+
+**集めるからこそ、1か所で厳密に守れる。** これが、AI 活用の前提としてデータ基盤が必要な理由です。
+
+---
+
 ## このパートでやること
 
 ここまでは管理者（ACCOUNTADMIN）として作業してきました。
